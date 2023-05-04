@@ -1,9 +1,10 @@
 # UtilitaireSauvegardeShell
 
 ## Sera fait bientôt 
+
   Refonte entière de l'application pour qu'elle soit utilisable correctement
 
-
+## Installation
 Pour installer cet utilitaire vous avez juste besoin de mettre le fichier dans un répertoire et de lancer la commande suivante : 
 
 bash Chemin/Absolu/ou/Relatif/utilSave
