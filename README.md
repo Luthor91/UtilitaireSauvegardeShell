@@ -1,8 +1,8 @@
 # UtilitaireSauvegardeShell
 
-############################################################################################################################################################################
-############################################################################################################################################################################
-############################################################################################################################################################################
+## Sera fait bientôt 
+  Refonte entière de l'application pour qu'elle soit utilisable correctement
+
 
 Pour installer cet utilitaire vous avez juste besoin de mettre le fichier dans un répertoire et de lancer la commande suivante : 
 
@@ -23,15 +23,8 @@ L'utilitaire puisant ses données dans le fichier /tmp/Init au démarrage, si vo
 L'utilitaire mettras une valeur par défaut en cas de "Reset" et si vous effacez le chemin inscrit dans le fichier /tmp/Init
 
 
-************************************************************************************************************************************************************************************
-*
-**	!! ATTENTION !! 
-***
-****	La fonction de restauration de sauvegarde et de remplacament de fichiers n'est pas disponible mais n'entraine aucune erreur, sauf dans le fichier /tmp/LogsError
-*****	Le répertoire est bien créée mais est vide.
-******	Le menu est mal affiché et à besoin qu'on mémorise les entrées pour être vraiment utilisé
-*****	
-***
-**
-*
-************************************************************************************************************************************************************************************
+!! ATTENTION !! 
+
+La fonction de restauration de sauvegarde et de remplacament de fichiers n'est pas disponible mais n'entraine aucune erreur, sauf dans le fichier /tmp/LogsError
+Le répertoire est bien créée mais est vide.
+Le menu est mal affiché et à besoin qu'on mémorise les entrées pour être vraiment utilisé
