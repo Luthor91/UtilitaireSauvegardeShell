@@ -1,0 +1,330 @@
+#!/bin/bash
+
+###################################
+#Récupération des valeurs des variables
+#
+init="/tmp/Init"
+LogsError="/tmp/LogsError"
+cheminCible=`grep cheminCible $init | cut -d' ' -f 2`
+dossierRestauration=`grep dossierRestauration $init | cut -d' ' -f 2`
+dossierArchive=`grep dossierArchive $init | cut -d' ' -f 2`
+INCREMENT_SAVE=`grep INCREMENT_SAVE $init | cut -d' ' -f 2`
+saveUsed=`grep saveUsed $init | cut -d' ' -f 2`
+compression=`grep compression $init | cut -d' ' -f 2`
+
+###################################
+#Création des fichiers importants
+#
+
+if [ ! -f "$init" ] || [ ! -s "$init" ] 
+  then
+    echo -e "cheminCible \ndossierRestauration \ndossierArchive \nINCREMENT_SAVE \nsaveUsed \ncompression  " >> "/tmp/Init"
+fi
+
+if [ ! -f "$LogsError" ] 
+  then
+    touch "/tmp/LogsError"
+fi
+
+###################################
+#Initialisation des variables si égales à zéro ou vides
+#
+
+if [ "$cheminCible" == "" ] 
+  then
+    perl -i -p -e 's|cheminCible.*|cheminCible '/home/$USER/Bureau/'|g' "$init"
+    cheminCible=/home/$USER/Documents
+fi
+
+if [ "$dossierRestauration" == "" ] 
+  then
+    perl -i -p -e 's|dossierRestauration.*|dossierRestauration '/home/$USER/Archives/Restauration'|g' "$init"
+    dossierRestauration=/home/$USER/Restauration
+  fi
+
+if [ "$dossierArchive" == "" ] 
+  then
+    perl -i -p -e 's|dossierArchive.*|dossierArchive '/home/$USER/Archives'|g' "$init"
+    dossierArchive=/home/$USER/Archives
+  fi
+
+if [ "$INCREMENT_SAVE" == "" ] 
+  then
+    perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '0'|g' "$init"
+    INCREMENT_SAVE=0
+  fi
+
+if [ "$saveUsed" == "" ] 
+  then
+    perl -i -p -e 's|saveUsed.*|saveUsed '0'|g' "$init"
+    saveUsed=0
+fi
+
+if [ ! `expr $compression -eq 1` ] && [ ! `expr $compression -eq 2` ] 
+  then
+    perl -i -p -e 's|compression.*|compression '1'|g' "$init"
+    compression=1
+fi
+
+###################################
+#Menu choix
+#
+  clear
+  txtMenu1="Taux d'occupation du disque :\n"$(df -hTBM /home/* -x squashfs --total |sort -n)"
+\n\n1) Créer : Créer une sauvegarde dans un fichier choisi
+\n2) Restaurer : Restaurer la dernière sauvegarde faite par défaut
+\n3) Restaurer et Remplacer : Ecrase les fichiers dans le disque
+\n4) Paramètres : Permet de modifier les paramètres de l'application
+\n5) Reset : Remet les paramètres de l'application à zéro
+\n6) Quitter : Quitte l'application\n"
+
+  PS3='
+Entrez le numéro du choix voulu : '
+  echo -e $txtMenu1
+  options1=("Créer" "Restaurer" "Restaurer et Remplacer" "Paramètres" "Reset" "Quitter")
+  #clear
+  select opt in "${options1[@]}"
+  do
+  #while [ $init ]
+  #do
+    echo -e $txtMenu1
+    case $opt in
+      "Créer")
+        saveUsed=`expr $INCREMENT_SAVE`
+        if [ ! -d $dossierArchive ] 
+        then
+          mkdir $dossierArchive
+        fi
+        cd $dossierArchive
+        INCREMENT_SAVE=`expr $INCREMENT_SAVE + 1`
+        ####################
+        #COMPRESSION EN .GZ
+        ####################
+        if [ $compression == "1" ]
+        then
+          if [ ! -f "save$INCREMENT_SAVE.tar.gz" ] 
+          then
+            echo "Veuillez patienter..."
+            perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '$INCREMENT_SAVE'|g' "$init"
+            tar czf ./save$INCREMENT_SAVE.tar.gz $cheminCible --exclude=/save$INCREMENT_SAVE.tar.gz "$(date +%c) Compression 1 GZ: " 2>>"/tmp/LogsError"
+            echo "Dossier " $cheminCible "transformé en Archive
+Archive " $dossierArchive"save"$INCREMENT_SAVE" créée
+Localisation "$dossierArchive
+          else
+            #Nom du fichier déjà pris
+            echo "Archive" $dossierArchive"/save"$INCREMENT_SAVE".tar.gz déjà existante
+Recherche d'un nom de dossier valide..."
+            while test -f "$dossierArchive/save$INCREMENT_SAVE.tar.gz"
+              do
+              INCREMENT_SAVE=`expr $INCREMENT_SAVE + 1`
+            done
+            echo "Dossier valide trouvé "$dossierArchive"/save"$INCREMENT_SAVE".tar.gz
+Création en cours..."
+            perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '$INCREMENT_SAVE'|g' "$init"
+            tar czf ./save$INCREMENT_SAVE.tar.gz $cheminCible --exclude=/save$INCREMENT_SAVE.tar.gz "$(date +%c) Compression 2 GZ: " 2>>"/tmp/LogsError"
+            echo "Dossier " $cheminCible "transformé en Archive
+Archive " $dossierArchive"/save"$INCREMENT_SAVE" créée
+Localisation "$dossierArchive"/"
+          fi
+      fi
+        ####################
+        #COMPRESSION EN .BZ2
+        ####################
+          
+        if [ $compression == "2" ]
+        then
+          if [ ! -f "save$INCREMENT_SAVE.tar.bz2" ] 
+          then
+            echo "Veuillez patienter..."
+            perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '$INCREMENT_SAVE'|g' "$init"
+            tar cjf ./save$INCREMENT_SAVE.tar.bz2 $cheminCible --exclude=/save$INCREMENT_SA.tar.bz2 "$(date +%c) Compression 1 BZ2: " 2>>"/tmp/LogsError"
+            echo "Dossier " $cheminCible "transformé en Archive
+Archive " $dossierArchive"save"$INCREMENT_SAVE" créée
+Localisation "$dossierArchive
+          else
+            #Nom du fichier déjà pris
+            echo "Archive" $dossierArchive"/save"$INCREMENT_SAVE".tar.bz2 déjà existante
+Recherche d'un nom de dossier valide..."
+            while test -f "$dossierArchive/save$INCREMENT_SAVE.tar.bz2"
+              do
+              INCREMENT_SAVE=`expr $INCREMENT_SAVE + 1`
+            done
+            echo "Dossier valide trouvé "$dossierArchive"/save"$INCREMENT_SAVE".tar.bz2
+Création en cours..."
+            perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '$INCREMENT_SAVE'|g' "$init"
+            tar cjf ./save$INCREMENT_SAVE.tar.bz2 $cheminCible --exclude=/save$INCREMENT_SA.tar.bz2 "$(date +%c) Compression 2 BZ2: " 2>>"/tmp/LogsError"
+            echo "Dossier " $cheminCible "transformé en Archive
+Archive " $dossierArchive"/save"$INCREMENT_SAVE" créée
+Localisation "$dossierArchive"/"
+          fi
+        fi
+      ;;
+      "Restaurer")
+###################################
+# Restauration du fichier nommé "save$saveUsed"
+# Dans le dossier qui regroupe les sauvegardes 
+        cd $dossierArchive
+        if [ ! -f "save$saveUsed.tar.gz" ] 
+          then
+          echo 'Sauvegarde a restaurer inconnue'
+          break
+        fi
+        if [ ! -d $dossierRestauration ] 
+        then
+          mkdir $dossierRestauration
+        fi
+        if [ ! -d $dossierRestauration/save$saveUsed ] 
+        then
+          mkdir $dossierRestauration/save$saveUsed
+          echo "Veuillez patienter..."
+          perl -i -p -e 's|saveUsed.*|saveUsed '$INCREMENT_SAVE'|g' "$init"
+          cd $dossierRestauration/save$saveUsed/
+          
+          if [ $compression == "2" ]
+          then
+            tar xjf ./save$INCREMENT_SAVE.tar.bz2 $cheminCible --exclude=/save$INCREMENT_SA.tar.bz2 "$(date +%c) Extraction BZ2: " 2>>"/tmp/LogsError"
+            else
+            tar xzf ./save$INCREMENT_SAVE.tar.gz $cheminCible --exclude=/save$INCREMENT_SAVE.tar.gz "$(date +%c) Extraction GZ: " 2>>"/tmp/LogsError"
+            fi
+          if [ -e $dossierRestauration/save$saveUsed ]
+            then
+            echo "Sauvegarde "$dossierArchive"/save"$saveUsed"
+Restaurée dans " $dossierRestauration/save$saveUsed
+          else
+            echo "Il y a eu un problème lors de la restauration de la sauvegarde.";
+          fi
+        else
+          echo "Sauvegarde "$dossierRestauration"/save"$saveUsed"/ déjà existante"
+        fi
+      ;;
+      "Restaurer et Remplacer")
+###################################
+# Restauration de la sauvegarde choisi
+# Ecrasement des fichiers correspondant dans l'arborescence '
+        cd $cheminCible
+        saveUsed=expr `saveUsed=$INCREMENT_SAVE`
+        #perl -i -p -e 's|saveUsed.*|saveUsed '$INCREMENT_SAVE'|g' "$init"
+          if [ $compression == "2" ]
+          then
+            tar xzf ./save$saveUsed.tar.bz2 && mv $cheminCible "$(date +%c) Replace BZ2 : " 2>>"/tmp/LogsError"
+          else
+            tar xzf ./save$saveUsed.tar.gz && mv $cheminCible "$(date +%c) Replace GZ : " 2>>"/tmp/LogsError"
+          fi
+        echo "Sauvegarde "$cheminCible"save"$saveUsed"
+Restaurée dans "$cheminCible
+      ;;
+      "Paramètres")
+###################################
+# Réglages des paramètres, définition des variable
+# et sauvegarde des données dans fichier texte
+        clear
+        echo "
+Ce sous menu sert à pouvoir définir quelques réglages pour cette application
+Si vous voulez remettre à zéro les valeurs, supprimez le fichier "$init"
+Ou alors vous pouvez sélectionner l'option 'Reset' dans le menu principal
+Veuillez respecter la syntaxe proposer et remplacer uniquement les noms de répertoire
+"
+        PS3='
+Entrez le numéro du choix voulu: '
+        options2=("Répertoire à archiver" "Répertoire contenant les sauvegardes" "Répertoire contenant les archives" "Sauvegarde à restaurer" "Type de compression" "Quitter")
+        select opt in "${options2[@]}"
+        do
+            case $opt in
+              "Répertoire à archiver")
+                echo "Entrez une nouvelle valeur sous la forme :
+/home/user/directory/directory2/"
+                read var
+                echo $var
+                perl -i -p -e 's|cheminCible.*|cheminCible '$var'|g' "$init"
+                cheminCible=$var
+                echo "Nouvelle cible : "$var
+              ;;
+              "Répertoire contenant les sauvegardes")
+                echo "Entrez une nouvelle valeur sous la forme :
+/home/user/directory/directory2"
+                read var
+                perl -i -p -e 's|dossierRestauration.*|dossierRestauration '$var'|g' "$init"
+                dossierRestauration=$var
+                perl -i -p -e 's|saveUsed.*|saveUsed '$var'|g' "$init"
+                saveUsed=0
+                echo "Nouveau dossier a sauvegarder : "$var
+              ;;
+              "Répertoire contenant les archives")
+                echo "Entrez une nouvelle valeur sous la forme :
+/home/user/directory/directory2"
+                read var
+                perl -i -p -e 's|dossierArchive.*|dossierArchive '$var'|g' "$init"
+                dossierArchive=$var
+                perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '0'|g' "$init"
+                INCREMENT_SAVE=0
+                echo "Nouveau répertoire Archive : "$var
+              ;;
+              "Sauvegarde à restaurer")
+                echo "Entrez une nouvelle valeur entière : 
+                "
+                read var
+                perl -i -p -e 's|saveUsed.*|saveUsed '$var'|g' "$init"
+                saveUsed=$var
+                echo "Nouvelle sauvegarde : "$var
+              ;;
+              "Type de compression")
+                echo "Entrez une nouvelle valeur entière : 
+1 pour la compression .gz, rapide mais plus coûteuse en mémoire
+2 pour la compression .bz2, lente mais moins coûteuse en mémoire
+Les autres valeurs activeront la compression .gz
+  "
+                read var
+                if [ $var -eq 1 ]
+                then
+                  echo 'Compression .gz utilisé'
+                  perl -i -p -e 's|compression.*|compression '$var'|g' "$init"
+                  compression=$var
+                elif [ $var -eq 2 ]
+                then
+                  echo 'Compression .gz utilisé'
+                  perl -i -p -e 's|compression.*|compression '$var'|g' "$init"
+                  compression=$var
+                else
+                  echo "Valeur par défaut, compression .gz, utilisé"
+                  perl -i -p -e 's|compression.*|compression '$var'|g' "$init"
+                  compression=$var
+                fi
+              ;;
+              "Quitter")
+                clear
+                echo -e $txtMenu1
+                break
+              ;;
+              *) echo "Option invalide $REPLY"
+                break
+              ;;
+            esac
+        done
+      ;;
+      "Reset")
+###################################
+# Remise a leurs valeurs par défauts des variables
+# même chose pour la sauvegarde dans le fichier /tmp/Init
+        perl -i -p -e 's|cheminCible.*|cheminCible '/home/$USER/Documents/'|g' "$init"
+        perl -i -p -e 's|dossierRestauration.*|dossierRestauration '/home/$USER/Restauration'|g' "$init"
+        perl -i -p -e 's|dossierArchive.*|dossierArchive '/home/$USER/Archives'|g' "$init"
+        perl -i -p -e 's|INCREMENT_SAVE.*|INCREMENT_SAVE '0'|g' "$init"
+        perl -i -p -e 's|saveUsed.*|saveUsed '0'|g' "$init"
+        perl -i -p -e 's|compression.*|compression '1'|g' "$init"
+        cheminCible=/home/$USER/Documents/
+        dossierRestauration=/home/$USER/Restauration
+        dossierArchive=/home/$USER/Archives
+        INCREMENT_SAVE=0
+        saveUsed=0
+        compression=1
+        echo "Les valeurs du fichier "$init" ont étés remises à zéro
+Le fichier "$LogsError" n'a pas été modifié."
+      ;;
+      "Quitter")
+        clear
+        exit
+      ;;
+      *) echo "Option invalide $REPLY";;
+    esac
+  #done
+done
